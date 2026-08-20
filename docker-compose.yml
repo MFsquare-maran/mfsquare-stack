@@ -1,0 +1,99 @@
+# =====================================================================
+#  MFsquare – Login-Gateway als Portainer-Stack (Git-Deploy)
+#
+#  Aufbau:  NPM (HTTPS) -> gateway (nginx: Auth + CSS) -> Dashboard
+#                                  └─ Authelia (Login-Portal, kein Popup)
+#
+#  ► ALLE EINSTELLUNGEN machst du hier oben unter "x-settings" bzw. in
+#    Portainer unter "Environment variables". Dateien landen automatisch
+#    per Provisioner in Volumes – KEIN SSH nötig.
+# =====================================================================
+
+# --------------------------------------------------------------------
+#  EINSTELLUNGEN  (in Portainer als Environment variables überschreibbar)
+# --------------------------------------------------------------------
+x-settings: &settings
+  # Domains
+  DOMAIN:          ${DOMAIN:-mfsquare.ch}
+  DASHBOARD_HOST:  ${DASHBOARD_HOST:-network.mfsquare.ch}
+  AUTH_HOST:       ${AUTH_HOST:-auth.mfsquare.ch}
+
+  # Login-Benutzer
+  ADMIN_USER:        ${ADMIN_USER:-admin}
+  ADMIN_DISPLAYNAME: ${ADMIN_DISPLAYNAME:-MF Admin}
+  ADMIN_EMAIL:       ${ADMIN_EMAIL:-admin@mfsquare.ch}
+  # Passwort als Argon2-Hash. Standard = "mfsquare".  BITTE ÄNDERN!
+  # Neuen Hash erzeugen (siehe README) und hier ODER in Portainer setzen.
+  # (Die $$ sind absichtlich verdoppelt – Compose macht daraus je ein $.)
+  ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:-$$argon2id$$v=19$$m=65536,t=3,p=4$$OudmYtq3EvI8V060d1JkJQ$$il7pufDDFuDNWWg08ddlC2/4GRxA3CNc71DjujIewng}
+
+  # Secrets (für Produktivbetrieb eigene setzen – siehe README)
+  SESSION_SECRET:         ${SESSION_SECRET:-4ec50574dc1d3c9d8c0a978d5ebc0820e73d5e8cbc5600538406da05c839dcda}
+  JWT_SECRET:             ${JWT_SECRET:-203e7068a6fafd4a3816cda19b582eb2e5c0409de9a147f94397a3c2427c18e4}
+  STORAGE_ENCRYPTION_KEY: ${STORAGE_ENCRYPTION_KEY:-d21435d4e857c63b67ffed360c6e2fac9aef92688406b044e39d53214f94ae02}
+
+  # Sitzung / Logging
+  SESSION_EXPIRATION: ${SESSION_EXPIRATION:-1 hour}
+  SESSION_INACTIVITY: ${SESSION_INACTIVITY:-15 minutes}
+  LOG_LEVEL:          ${LOG_LEVEL:-info}
+  # Host-Port des Gateways auf Server B (NPM auf dem anderen Server zeigt hierher).
+  # Wird nur beim 'gateway'-Service unter ports: verwendet.
+  # GATEWAY_PORT: siehe ports-Eintrag beim gateway-Service (Default 8082)
+
+services:
+  # 1) Provisioner: rendert Config in die Volumes und beendet sich
+  provisioner:
+    build: .
+    image: mfsquare/provisioner:local
+    container_name: mfsquare-provisioner
+    restart: "no"
+    environment: *settings
+    volumes:
+      - authelia_config:/out/authelia
+      - gateway_data:/out/gateway
+    networks:
+      - mfsquare
+
+  # 2) Authelia: Login-Portal
+  authelia:
+    image: authelia/authelia:4.39
+    container_name: mfsquare-authelia
+    restart: unless-stopped
+    depends_on:
+      provisioner:
+        condition: service_completed_successfully
+    command: ["--config", "/config/configuration.yml"]
+    volumes:
+      - authelia_config:/config
+    networks:
+      - mfsquare
+    expose:
+      - "9091"
+
+  # 3) Gateway: prüft Anmeldung, färbt Login ein, liefert Dashboard aus
+  gateway:
+    image: nginx:1.27-alpine
+    container_name: mfsquare-gateway
+    restart: unless-stopped
+    depends_on:
+      provisioner:
+        condition: service_completed_successfully
+      authelia:
+        condition: service_started
+    command: ["nginx", "-c", "/etc/nginx/mfsquare/nginx.conf", "-g", "daemon off;"]
+    volumes:
+      - gateway_data:/etc/nginx/mfsquare
+    networks:
+      - mfsquare
+    # NPM läuft auf einem ANDEREN Server (192.168.196.190) und erreicht dieses
+    # Gateway über die LAN-IP von Server B + diesem Port. Links = Host-Port.
+    ports:
+      - "${GATEWAY_PORT:-8082}:80"
+
+networks:
+  mfsquare:
+    driver: bridge
+
+volumes:
+  authelia_config:
+  gateway_data:

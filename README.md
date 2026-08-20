@@ -27,6 +27,20 @@ fragilen Bind-Mounts (die in Portainer-Git-Stacks Probleme machen) und keinen SS
 ### 1) Repo bereitstellen
 Diesen Ordner (`mfsquare-stack/`) in ein Git-Repo legen (GitHub/Gitea, öffentlich oder privat).
 
+> **„reference not found" beim Deploy?** Dann stimmt der **Reference**-Wert nicht mit deinem
+> Branch überein. Branch prüfen mit `git branch --show-current` und in Portainer exakt
+> `refs/heads/<branch>` eintragen (meist `refs/heads/main`). Compose path = `docker-compose.yml`.
+> Bei privatem Repo zusätzlich „Authentication" mit GitHub-Token setzen.
+
+### 1b) Datenordner auf Server B anlegen (einmalig, VOR dem Deploy)
+Die Daten liegen als Bind-Mounts unter `DATA_DIR`. Diese Ordner müssen vorher existieren:
+```bash
+mkdir -p /home/maran/serverdata/server/network_dasboard/authelia
+mkdir -p /home/maran/serverdata/server/network_dasboard/gateway
+```
+Anderer Pfad? Dann `DATA_DIR` als Environment variable setzen und die zwei Unterordner
+`authelia/` und `gateway/` dort anlegen.
+
 ### 2) (entfällt) – NPM läuft auf einem anderen Server
 Kein gemeinsames Docker-Netz nötig. Das Gateway veröffentlicht Port **8082** auf
 Server B (192.168.196.202); der NPM auf Server A zeigt per LAN dorthin (Schritt 6).
@@ -52,6 +66,7 @@ Im selben Dialog unter **Environment variables** eintragen (alles Weitere nutzt 
 | `JWT_SECRET`          | 64-stelliger Zufallswert                            |
 | `STORAGE_ENCRYPTION_KEY` | 64-stelliger Zufallswert                         |
 | `GATEWAY_PORT`        | `8082` (Host-Port auf Server B)                     |
+| `DATA_DIR`            | `/home/maran/serverdata/server/network_dasboard`    |
 
 > In Portainers Env-Feld wird der Hash **wörtlich** übernommen – die `$`-Zeichen hier
 > **nicht** verdoppeln. (Nur der Default im `docker-compose.yml` nutzt `$$`.)

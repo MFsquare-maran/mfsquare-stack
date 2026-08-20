@@ -1,0 +1,7 @@
+# echte Secrets NIE committen (nur .env.example gehört ins Repo)
+.env
+*.env.local
+
+# lokale/temporäre Sachen
+*.log
+.DS_Store

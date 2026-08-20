@@ -6,11 +6,6 @@ server {
     listen 80;
     server_name ${AUTH_HOST};
 
-    proxy_set_header Host              $host;
-    proxy_set_header X-Forwarded-Proto https;
-    proxy_set_header X-Forwarded-Host  $host;
-    proxy_set_header X-Forwarded-For   $remote_addr;
-
     location = /mfsquare-theme.css {
         default_type text/css;
         alias /etc/nginx/mfsquare/theme/mfsquare-theme.css;
@@ -18,6 +13,16 @@ server {
 
     location / {
         proxy_pass http://authelia:9091;
+
+        # WICHTIG: diese Header MÜSSEN in der location stehen. Sobald hier ein
+        # proxy_set_header vorkommt, erbt nginx KEINE Header aus dem server-Block
+        # mehr – dann käme bei Authelia der interne Host "authelia:9091" an und
+        # /api/state schlägt mit "no cookie domain matches" fehl.
+        proxy_set_header Host              $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host  $host;
+        proxy_set_header X-Forwarded-For   $remote_addr;
+        proxy_set_header X-Forwarded-Uri   $request_uri;
         proxy_set_header Accept-Encoding "";
 
         sub_filter_once on;

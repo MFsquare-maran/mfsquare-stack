@@ -96,4 +96,14 @@ networks:
 
 volumes:
   authelia_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-/home/maran/serverdata/server/network_dasboard}/authelia
   gateway_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-/home/maran/serverdata/server/network_dasboard}/gateway

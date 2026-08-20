@@ -5,7 +5,7 @@ users:
   ${ADMIN_USER}:
     disabled: false
     displayname: '${ADMIN_DISPLAYNAME}'
-    password: '${ADMIN_PASSWORD_HASH}'
+    password: '@@ADMIN_PASSWORD_HASH@@'
     email: '${ADMIN_EMAIL}'
     groups:
       - 'admins'

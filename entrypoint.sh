@@ -17,8 +17,17 @@ mkdir -p "$AUTH_OUT/assets" "$GW_OUT/conf.d" "$GW_OUT/snippets" "$GW_OUT/theme" 
 envsubst '${DOMAIN} ${DASHBOARD_HOST} ${AUTH_HOST} ${SESSION_SECRET} ${JWT_SECRET} ${STORAGE_ENCRYPTION_KEY} ${SESSION_EXPIRATION} ${SESSION_INACTIVITY} ${LOG_LEVEL}' \
   < templates/authelia/configuration.yml.tpl > "$AUTH_OUT/configuration.yml"
 
-envsubst '${ADMIN_USER} ${ADMIN_DISPLAYNAME} ${ADMIN_EMAIL} ${ADMIN_PASSWORD_HASH}' \
+envsubst '${ADMIN_USER} ${ADMIN_DISPLAYNAME} ${ADMIN_EMAIL}' \
   < templates/authelia/users_database.yml.tpl > "$AUTH_OUT/users_database.yml"
+
+# Passwort-Hash NICHT durch envsubst schicken (er enthält viele '$', die
+# envsubst als Variablen missdeuten würde). Stattdessen den Platzhalter
+# @@ADMIN_PASSWORD_HASH@@ literal ersetzen – egal wie viele '$' im Hash sind.
+tmp_users="$AUTH_OUT/users_database.yml"
+ADMIN_PASSWORD_HASH="${ADMIN_PASSWORD_HASH:-}" awk '
+  BEGIN{ h=ENVIRON["ADMIN_PASSWORD_HASH"] }
+  { gsub(/@@ADMIN_PASSWORD_HASH@@/, h); print }
+' "$tmp_users" > "$tmp_users.new" && mv "$tmp_users.new" "$tmp_users"
 
 cp assets/logo.png "$AUTH_OUT/assets/logo.png"
 

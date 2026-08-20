@@ -22,10 +22,11 @@ x-settings: &settings
   ADMIN_USER:        ${ADMIN_USER:-admin}
   ADMIN_DISPLAYNAME: ${ADMIN_DISPLAYNAME:-MF Admin}
   ADMIN_EMAIL:       ${ADMIN_EMAIL:-admin@mfsquare.ch}
-  # Passwort als Argon2-Hash. Standard = "mfsquare".  BITTE ÄNDERN!
-  # Neuen Hash erzeugen (siehe README) und hier ODER in Portainer setzen.
-  # (Die $$ sind absichtlich verdoppelt – Compose macht daraus je ein $.)
-  ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:-$$argon2id$$v=19$$m=65536,t=3,p=4$$OudmYtq3EvI8V060d1JkJQ$$il7pufDDFuDNWWg08ddlC2/4GRxA3CNc71DjujIewng}
+  # Passwort als Argon2-Hash. IMMER in Portainer als Environment variable
+  # "ADMIN_PASSWORD_HASH" setzen (Hash 1:1 mit einfachen $ einfügen).
+  # Hash erzeugen (siehe README):
+  #   docker run --rm authelia/authelia:4.39 authelia crypto hash generate argon2 --password 'DEIN-PW'
+  ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?Bitte ADMIN_PASSWORD_HASH als Environment variable setzen}
 
   # Secrets (für Produktivbetrieb eigene setzen – siehe README)
   SESSION_SECRET:         ${SESSION_SECRET:-4ec50574dc1d3c9d8c0a978d5ebc0820e73d5e8cbc5600538406da05c839dcda}

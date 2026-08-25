@@ -1,0 +1,9 @@
+Bilder für die Kacheln hier ablegen.
+
+- Beliebige Bilder: PNG, JPG, SVG, WEBP.
+- In services.yaml beim Dienst den Dateinamen eintragen, z. B.:
+      bild: proxmox.png
+- Kein "bild" angegeben?  Dann wird automatisch das Favicon der Seite
+  geladen; klappt das nicht, erscheint ein Buchstaben-Icon.
+
+Tipp: quadratische Bilder (z. B. 128x128) sehen am besten aus.

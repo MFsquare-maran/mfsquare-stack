@@ -1,0 +1,54 @@
+# =====================================================================
+#  MFsquare – Dienste
+#  So fügst du etwas hinzu:
+#   1) Bild (optional) in den Ordner "bilder/" legen, z. B. proxmox.png
+#   2) hier einen Eintrag ergänzen (auf die Einrückung achten: 2 Leerzeichen)
+#
+#  Felder pro Dienst:
+#   name:         Anzeigename (Pflicht)
+#   url:          Link, der geöffnet wird (Pflicht)
+#   bild:         Dateiname im Ordner bilder/ (optional -> sonst Favicon)
+#   beschreibung: kurzer Text unter dem Namen (optional)
+#
+#  Hinweis: keine Kommentare hinter einem Wert in derselben Zeile.
+# =====================================================================
+
+- kategorie: Infrastruktur
+  dienste:
+    - name: Proxmox
+      url: https://proxmox.mfsquare.lan:8006
+      bild: proxmox.png
+      beschreibung: Virtualisierung & Container
+    - name: Portainer
+      url: https://portainer.mfsquare.lan
+      beschreibung: Docker-Verwaltung
+    - name: Pi-hole
+      url: http://pihole.mfsquare.lan/admin
+      beschreibung: Werbe- & Tracking-Filter
+
+- kategorie: Smart Home
+  dienste:
+    - name: Home Assistant
+      url: https://ha.mfsquare.lan
+      beschreibung: Zentrale für alle Geräte
+    - name: Zigbee2MQTT
+      url: http://zigbee.mfsquare.lan
+      beschreibung: Zigbee-Geräte anbinden
+
+- kategorie: Medien
+  dienste:
+    - name: Jellyfin
+      url: https://jellyfin.mfsquare.lan
+      beschreibung: Filme & Serien streamen
+    - name: Nextcloud
+      url: https://cloud.mfsquare.lan
+      beschreibung: Dateien, Kalender & Kontakte
+
+- kategorie: Werkzeuge
+  dienste:
+    - name: Vaultwarden
+      url: https://vault.mfsquare.lan
+      beschreibung: Passwort-Tresor
+    - name: Uptime Kuma
+      url: https://status.mfsquare.lan
+      beschreibung: Erreichbarkeit überwachen

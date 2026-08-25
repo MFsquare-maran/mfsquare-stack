@@ -1,0 +1,46 @@
+# =====================================================================
+#  MFsquare Dashboard – Portainer-Git-Stack (Weg C: Volume auf dem Server)
+#
+#  Startinhalte kommen aus dem Git; der Provisioner kopiert sie EINMALIG
+#  ins Volume unter DATA_DIR. Danach bearbeitest du services.yaml und die
+#  Bilder direkt auf dem Server -> sofort live, ohne Redeploy.
+#
+#  NPM (Server A) erreicht den Container über  192.168.196.202:${WEB_PORT}
+# =====================================================================
+
+services:
+  # 1) Provisioner: legt Startinhalte ins Volume (nur wenn leer) und endet
+  provisioner:
+    build:
+      context: .
+      dockerfile: Dockerfile.provisioner
+    image: mfsquare/dashboard-provisioner:local
+    container_name: mfsquare-dashboard-provisioner
+    restart: "no"
+    volumes:
+      - web:/web
+
+  # 2) nginx: liefert die Seite aus dem Volume aus
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mfsquare/dashboard:local
+    container_name: mfsquare-dashboard
+    restart: unless-stopped
+    depends_on:
+      provisioner:
+        condition: service_completed_successfully
+    volumes:
+      - web:/usr/share/nginx/html:ro
+    ports:
+      - "${WEB_PORT:-8085}:80"
+
+volumes:
+  web:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      # Ablage auf dem Server (mit "h" in dashboard!). Unterordner: web/
+      device: "${DATA_DIR:-/home/maran/serverdata/server/network_dashboard}/web"

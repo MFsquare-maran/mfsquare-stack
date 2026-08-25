@@ -1,0 +1,6 @@
+# Provisioner-Image: enthält die Startinhalte und das Kopierskript.
+FROM alpine:3.20
+COPY site/ /seed/
+COPY provision.sh /provision.sh
+RUN chmod +x /provision.sh
+ENTRYPOINT ["/provision.sh"]
